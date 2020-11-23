@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Homework_7</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="twitter_api_key">k3vhw9gtTR3aJFRLswOiU8Hc7</string>
+    <string name="twitter_api_secret">NpjKWpLXZMtX5ffCbm4JnYAWlBQjK4fFSuVynurcPw01DkeHXI</string>
+</resources>
