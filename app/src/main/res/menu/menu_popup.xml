@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_dup"
+        android:icon="@drawable/ic_baseline_content_copy_24"
+        android:title="Duplicate Selected Movies"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/action_rem"
+        android:icon="@android:drawable/ic_delete"
+        android:title="Delete Selected Movies"
+        app:showAsAction="ifRoom|withText" />
+</menu>

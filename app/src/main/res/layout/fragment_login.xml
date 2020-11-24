@@ -56,15 +56,10 @@
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
-        <com.twitter.sdk.android.core.identity.TwitterLoginButton
-            android:id="@+id/twitter_login_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"/>
+
         <com.google.android.gms.common.SignInButton
             android:id="@+id/google_login_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
 

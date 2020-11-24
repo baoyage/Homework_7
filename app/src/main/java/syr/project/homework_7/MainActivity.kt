@@ -1,9 +1,12 @@
 package syr.project.homework_7
 
 
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.MenuItem
 import android.widget.TextView
@@ -17,12 +20,15 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_signup.*
 import kotlinx.android.synthetic.main.navi_header.view.*
+import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-
+    var selectedPhotoUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,9 +46,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
 
+        supportFragmentManager.beginTransaction().replace(R.id.meContainer,RecyclerViewFragment()).commit()
+
+
 
 
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -118,17 +128,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.signout -> {
                 signOut()
             }
+            R.id.changeImage->{
+                changeImage()
+            }
         }
 
 
         return true
     }
+
     override fun onBackPressed() {
         if (mainAct.isDrawerOpen(GravityCompat.START)) {
             mainAct.closeDrawer(GravityCompat.START)
         } else
             super.onBackPressed()
     }
+
+
+
+
     private fun signOut(){
         FirebaseAuth.getInstance().signOut()
 
@@ -136,4 +154,66 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
+    private fun changeImage(){
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, 0)
+        uploadImageToFirebaseStorage()
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK && data != null) {
+            Log.d("SignUp", "Photo was selected")
+            selectedPhotoUri = data.data
+            val bitmap = MediaStore.Images.Media.getBitmap(this!!.contentResolver, selectedPhotoUri)
+            selectphoto_imageview.setImageBitmap(bitmap)
+            selectphoto_button.alpha = 0f // hide button for selected photo imageview
+
+        }
+
+    }
+    private fun uploadImageToFirebaseStorage() {
+        val filename = UUID.randomUUID().toString()
+        val ref = FirebaseStorage.getInstance().getReference("/images/$filename")
+        ref.putFile(selectedPhotoUri!!)
+            .addOnSuccessListener {
+                Log.d("SignUp", "Successfully uploaded image: ${it.metadata?.path}")
+                ref.downloadUrl.addOnSuccessListener {
+                    Log.d("SignUp", "File Location: $it")
+                    saveUserToFirebaseDatabase(it.toString())
+                }
+            }
+            .addOnFailureListener {
+                Log.d("SignUp", "Failed to upload image to storage: ${it.message}")
+            }
+
+
+    }
+    private fun saveUserToFirebaseDatabase(profileImageUrl: String) {
+        val uid = FirebaseAuth.getInstance().uid ?: ""
+        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid")
+//        var uid= FirebaseAuth.getInstance().currentUser!!.uid
+//        val ref = FirebaseDatabase.getInstance().reference.child("users")
+        val currentUserRef = ref!!.child(uid)
+        val headerView = navView.getHeaderView(0)
+        val profileEmail = headerView.profileEmail
+        val profileUserName = headerView.profileUserName
+        val profileImage= headerView.profileImage
+        val user = User(uid, profileUserName.text.toString(), profileEmail.text.toString(), profileImageUrl)
+//        currentUserRef.setValue(user)
+//        currentUserRef.child("username").setValue("cccccc")
+        ref.setValue(user)
+            .addOnSuccessListener{
+                Log.d("SignUp", "saved the user to Firebase Database")
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+            .addOnFailureListener{
+                Log.d("SignUp", "Failed to set value to database: ${it.message}")
+            }
+    }
+
+
+
 }
